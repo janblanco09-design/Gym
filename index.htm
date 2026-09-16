@@ -336,8 +336,8 @@ textarea:focus{
     max-width:480px;
 
     display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:clamp(12px,5vw,24px);
+    grid-template-columns:1fr;
+    gap:14px;
 }
 
 .field{
@@ -776,13 +776,14 @@ footer{
     bottom:0;
     left:0;
     right:0;
-    padding:10px 16px;
-    background:rgba(9,10,13,.88);
+    padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+    background:#080b12;
     backdrop-filter:blur(18px);
     border-top:1px solid var(--line);
     text-align:center;
     color:#747780;
     font-size:11px;
+    z-index:10;
 }
 
 #saveStatus{
@@ -802,8 +803,8 @@ footer{
 
     .sleep-grid{
         width:100%;
-        grid-template-columns:repeat(2,minmax(0,1fr));
-        gap:12px;
+        grid-template-columns:1fr;
+        gap:14px;
     }
 
     .field input{
