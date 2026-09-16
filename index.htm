@@ -91,14 +91,15 @@ textarea:focus-visible,
 .app{
     max-width:720px;
     margin:auto;
-    padding:20px 16px 110px;
+    padding:calc(32px + env(safe-area-inset-top)) 16px 110px;
 }
 
 header{
-    padding:15px 2px;
+    padding:18px 2px 15px;
     display:flex;
     justify-content:space-between;
     align-items:end;
+    min-height:78px;
 }
 
 h1{
