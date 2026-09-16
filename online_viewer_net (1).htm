@@ -1,0 +1,2326 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Jan Tracker</title>
+
+<style>
+
+:root{
+    --bg:#090a0d;
+    --card:#15171c;
+    --card2:#1b1e24;
+    --text:#f5f5f7;
+    --muted:#9a9ca4;
+    --accent:#8ab4ff;
+    --green:#4ade80;
+    --line:#292c33;
+    --danger:#ff6b6b;
+
+    --calendar-empty:#15171c;
+    --calendar-done:#203d2d;
+    --calendar-partial:#202f45;
+}
+
+*{
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+}
+
+body{
+    margin:0;
+    background:linear-gradient(
+        180deg,
+        #08090c 0%,
+        #0e1015 100%
+    );
+    color:var(--text);
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "SF Pro Display",
+        "SF Pro Text",
+        Arial,
+        sans-serif;
+    min-height:100vh;
+}
+
+button,
+input,
+textarea{
+    font:inherit;
+}
+
+button{
+    border:0;
+    color:var(--text);
+}
+
+.app{
+    max-width:720px;
+    margin:auto;
+    padding:20px 16px 110px;
+}
+
+header{
+    padding:15px 2px;
+    display:flex;
+    justify-content:space-between;
+    align-items:end;
+}
+
+h1{
+    font-size:30px;
+    letter-spacing:-1px;
+    margin:0;
+    font-weight:750;
+}
+
+.subtitle{
+    color:var(--muted);
+    font-size:14px;
+    margin-top:5px;
+}
+
+.date-pill{
+    background:#1b1d22;
+    border:1px solid var(--line);
+    padding:9px 12px;
+    border-radius:14px;
+    color:#cfd1d8;
+    font-size:12px;
+}
+
+.tabs{
+    display:flex;
+    background:#121419;
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:4px;
+    margin:8px 0 18px;
+    position:sticky;
+    top:8px;
+    z-index:5;
+}
+
+.tabs button{
+    flex:1;
+    background:transparent;
+    padding:10px 6px;
+    border-radius:12px;
+    color:var(--muted);
+    font-size:13px;
+    cursor:pointer;
+}
+
+.tabs button.active{
+    background:#252830;
+    color:white;
+}
+
+.view{
+    display:none;
+}
+
+.view.active{
+    display:block;
+}
+
+.section{
+    margin:18px 0;
+}
+
+.section-title{
+    font-size:18px;
+    font-weight:700;
+    margin:0 0 9px;
+}
+
+.section-note{
+    font-size:12px;
+    color:var(--muted);
+    margin:-3px 0 10px;
+}
+
+.card{
+    background:rgba(21,23,28,.94);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:16px;
+    margin:10px 0;
+    box-shadow:0 10px 30px rgba(0,0,0,.14);
+}
+
+.meal-head{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    align-items:center;
+}
+
+.meal-name{
+    font-size:16px;
+    font-weight:700;
+}
+
+.time{
+    font-size:12px;
+    color:var(--muted);
+}
+
+.plan{
+    font-size:14px;
+    line-height:1.5;
+    color:#d8dae0;
+    margin:10px 0 13px;
+}
+
+.plan strong{
+    color:#fff;
+}
+
+.checkrow{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+}
+
+.check{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:#1b1e24;
+    border:1px solid #30343c;
+    padding:9px 11px;
+    border-radius:13px;
+    color:#cfd1d8;
+    font-size:13px;
+    cursor:pointer;
+}
+
+.check input{
+    width:18px;
+    height:18px;
+    accent-color:var(--green);
+}
+
+.small-input{
+    width:100%;
+    background:#101216;
+    color:white;
+    border:1px solid #30343c;
+    border-radius:12px;
+    padding:11px;
+    margin-top:9px;
+    outline:none;
+}
+
+.small-input:focus,
+.field input:focus,
+textarea:focus{
+    border-color:#536a91;
+    box-shadow:0 0 0 2px rgba(138,180,255,.08);
+}
+
+.comment-wrapper{
+    margin-top:9px;
+}
+
+.comment-counter{
+    display:flex;
+    justify-content:flex-end;
+    color:var(--muted);
+    font-size:11px;
+    margin-top:5px;
+}
+
+.comment-counter.limit{
+    color:var(--danger);
+}
+
+.training{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+
+.train{
+    padding:15px;
+    border:1px solid var(--line);
+    border-radius:18px;
+    background:#15171c;
+}
+
+.train label{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-weight:650;
+    font-size:14px;
+}
+
+.train input{
+    width:21px;
+    height:21px;
+    accent-color:var(--green);
+}
+
+
+/* =========================
+   SUEÑO
+========================= */
+
+.sleep-card{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+.sleep-grid{
+    width:100%;
+    max-width:480px;
+
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+}
+
+.field{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+.field label{
+    display:block;
+    width:100%;
+    text-align:center;
+    color:var(--muted);
+    font-size:12px;
+    margin-bottom:7px;
+}
+
+.field input{
+    width:100%;
+    max-width:210px;
+    background:#101216;
+    color:white;
+    border:1px solid #30343c;
+    border-radius:13px;
+    padding:12px;
+    outline:none;
+    text-align:center;
+}
+
+.sleep-result{
+    width:100%;
+    max-width:480px;
+    margin-top:18px;
+    padding:13px;
+    border-radius:14px;
+    background:#111318;
+    color:#cfd1d8;
+    font-size:13px;
+    text-align:center;
+}
+
+.sleep-result strong{
+    color:white;
+    margin-left:4px;
+}
+
+
+/* =========================
+   BOTÓN GUARDAR
+========================= */
+
+.save-section{
+    margin-top:30px;
+    margin-bottom:30px;
+}
+
+.save-day{
+    width:100%;
+    padding:15px 18px;
+    border-radius:16px;
+    background:var(--green);
+    color:#07100a;
+    font-weight:750;
+    font-size:15px;
+    cursor:pointer;
+    transition:
+        transform .15s ease,
+        opacity .15s ease;
+}
+
+.save-day:hover{
+    opacity:.92;
+}
+
+.save-day:active{
+    transform:scale(.98);
+}
+
+.save-message{
+    text-align:center;
+    color:var(--green);
+    font-size:12px;
+    margin-top:9px;
+    min-height:16px;
+}
+
+
+/* =========================
+   AVISO
+========================= */
+
+.notice{
+    background:#111820;
+    border:1px solid #273548;
+    color:#cddcff;
+    padding:12px;
+    border-radius:15px;
+    font-size:12px;
+    line-height:1.45;
+}
+
+
+/* =========================
+   HISTORIAL / CALENDARIO
+========================= */
+
+.calendar-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:14px;
+}
+
+.calendar-title{
+    font-size:17px;
+    font-weight:700;
+    text-transform:capitalize;
+}
+
+.calendar-nav{
+    display:flex;
+    gap:7px;
+}
+
+.calendar-nav button{
+    width:36px;
+    height:36px;
+    border-radius:11px;
+    background:#252830;
+    border:1px solid #343842;
+    cursor:pointer;
+    font-size:17px;
+}
+
+.calendar-weekdays,
+.calendar-grid{
+    display:grid;
+    grid-template-columns:
+        repeat(7,minmax(0,1fr));
+    gap:6px;
+}
+
+.calendar-weekdays{
+    margin-bottom:6px;
+}
+
+.calendar-weekdays div{
+    text-align:center;
+    color:var(--muted);
+    font-size:10px;
+    font-weight:600;
+}
+
+.calendar-day{
+    aspect-ratio:1;
+    min-width:0;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border-radius:11px;
+    border:1px solid #292c33;
+
+    background:var(--calendar-empty);
+
+    color:#bfc2ca;
+    font-size:12px;
+
+    cursor:pointer;
+
+    transition:
+        transform .12s ease,
+        border-color .12s ease;
+}
+
+.calendar-day:hover{
+    transform:scale(1.04);
+    border-color:#4a5060;
+}
+
+.calendar-day.empty{
+    visibility:hidden;
+    cursor:default;
+}
+
+.calendar-day.today{
+    border-color:var(--accent);
+    box-shadow:
+        0 0 0 1px rgba(138,180,255,.15);
+}
+
+.calendar-day.partial{
+    background:var(--calendar-partial);
+    color:#dce8ff;
+    border-color:#31476a;
+}
+
+.calendar-day.complete{
+    background:var(--calendar-done);
+    color:#bff3cc;
+    border-color:#356344;
+}
+
+.calendar-day.selected{
+    outline:2px solid var(--accent);
+    outline-offset:1px;
+}
+
+.calendar-legend{
+    display:flex;
+    justify-content:center;
+    gap:16px;
+    margin-top:16px;
+    flex-wrap:wrap;
+}
+
+.legend-item{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    color:var(--muted);
+    font-size:11px;
+}
+
+.legend-dot{
+    width:10px;
+    height:10px;
+    border-radius:3px;
+    border:1px solid var(--line);
+}
+
+.legend-dot.empty{
+    background:var(--calendar-empty);
+}
+
+.legend-dot.partial{
+    background:var(--calendar-partial);
+}
+
+.legend-dot.complete{
+    background:var(--calendar-done);
+}
+
+.history-selected{
+    margin-top:14px;
+    padding:12px;
+    background:#111318;
+    border-radius:14px;
+    font-size:12px;
+    color:var(--muted);
+    text-align:center;
+}
+
+
+/* =========================
+   ESTADÍSTICAS
+========================= */
+
+.stats-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+
+.stat{
+    background:#15171c;
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:15px;
+}
+
+.stat b{
+    display:block;
+    font-size:25px;
+}
+
+.stat span{
+    font-size:12px;
+    color:var(--muted);
+}
+
+.progress{
+    height:7px;
+    background:#252830;
+    border-radius:99px;
+    overflow:hidden;
+    margin-top:10px;
+}
+
+.progress i{
+    display:block;
+    height:100%;
+    background:var(--green);
+    border-radius:99px;
+}
+
+
+/* =========================
+   BORRADO / GENERAL
+========================= */
+
+.btn{
+    background:#252830;
+    border:1px solid #343842;
+    padding:10px 13px;
+    border-radius:12px;
+    cursor:pointer;
+}
+
+.btn.primary{
+    background:#e9eaf0;
+    color:#111;
+}
+
+.btn.danger{
+    background:#2a1517;
+    color:#ff9a9a;
+    border-color:#472024;
+}
+
+.empty{
+    text-align:center;
+    color:var(--muted);
+    padding:35px 10px;
+}
+
+footer{
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    padding:10px 16px;
+    background:rgba(9,10,13,.88);
+    backdrop-filter:blur(18px);
+    border-top:1px solid var(--line);
+    text-align:center;
+    color:#747780;
+    font-size:11px;
+}
+
+@media(max-width:420px){
+
+    h1{
+        font-size:27px;
+    }
+
+    .training{
+        grid-template-columns:1fr;
+    }
+
+    .sleep-grid{
+        gap:10px;
+    }
+
+    .field input{
+        max-width:170px;
+    }
+
+    .calendar-grid,
+    .calendar-weekdays{
+        gap:4px;
+    }
+
+    .calendar-day{
+        border-radius:8px;
+        font-size:11px;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header>
+
+<div>
+
+<h1>Jan Tracker</h1>
+
+<div class="subtitle">
+Nutrición · entrenamiento · descanso
+</div>
+
+</div>
+
+<div class="date-pill" id="datePill"></div>
+
+</header>
+
+
+<nav class="tabs">
+
+<button class="active" data-tab="today">
+Hoy
+</button>
+
+<button data-tab="history">
+Historial
+</button>
+
+<button data-tab="stats">
+Estadísticas
+</button>
+
+</nav>
+
+
+<main>
+
+<section id="today" class="view active"></section>
+
+<section id="history" class="view"></section>
+
+<section id="stats" class="view"></section>
+
+</main>
+
+</div>
+
+
+<footer>
+Los cambios se guardan automáticamente en este dispositivo.
+</footer>
+
+
+<script>
+
+/* =========================
+   PLAN NUTRICIONAL
+========================= */
+
+const PLAN = {
+
+0:{
+name:"Domingo",
+breakfast:
+"3 huevos revueltos + 2 tostadas de barra de pan con un chorrito de aceite de oliva + 1 pieza de fruta + 1 vaso de leche.",
+lunch:
+"Comida familiar libre: lo que se cocine en casa. Asegurar una buena ración de carne, pescado o huevos.",
+snack:
+"1 vaso grande de leche entera o semidesnatada con copos de avena o cereales integrales.",
+dinner:
+"Empanadillas al horno (rellenas de atún/huevo/jamón) + el propio relleno proteico de las empanadillas.",
+training:[]
+},
+
+1:{
+name:"Lunes",
+breakfast:
+"Bocadillo de media barra de pan con 80 g de pechuga de pavo o pollo + 1 plátano maduro + 1 yogur natural.",
+lunch:
+"Arroz hervido (1 taza y media en seco, ya cocido) + 3 hamburguesas de ternera o pollo a la plancha.",
+snack:
+"1 yogur griego natural + 1 pieza de fruta (pera, mandarina o plátano) + 1 puñado de crackers integrales.",
+dinner:
+"Puré de verduras (calabacín, zanahoria, cebolla y patata) + tortilla francesa de 2 huevos enteros.",
+training:["box","weights"]
+},
+
+2:{
+name:"Martes",
+breakfast:
+"Tortilla francesa de 3 huevos enteros + bocadillo de media barra de pan con queso tierno o jamón serrano + 1 vaso de leche.",
+lunch:
+"3 patatas medianas cocidas o al horno + 180 g de pechuga de pollo a la plancha (2 filetes grandes).",
+snack:
+"1 vaso grande de leche entera o semidesnatada con copos de avena o cereales integrales.",
+dinner:
+"Caldo de pollo y huesos con fideos finos de pasta + 150 g de pechuga de pollo desmechada dentro de la sopa.",
+training:["weights"]
+},
+
+3:{
+name:"Miércoles",
+breakfast:
+"Bocadillo de media barra de pan con 80 g de pechuga de pavo o pollo + 1 plátano maduro + 1 yogur natural.",
+lunch:
+"Plato generoso de legumbres (lentejas/garbanzos) con arroz + 1 huevo duro picado + 1 lata de atún al natural.",
+snack:
+"1 yogur griego natural + 1 pieza de fruta (pera, mandarina o plátano) + 1 puñado de crackers integrales.",
+dinner:
+"Ñoquis al horno con especias (orégano, albahaca) + 120 g de tacos de jamón dulce/pavo + pizca de queso rallado.",
+training:["box","weights"]
+},
+
+4:{
+name:"Jueves",
+breakfast:
+"Tortilla francesa de 3 huevos enteros + bocadillo de media barra de pan con queso tierno o jamón serrano + 1 vaso de leche.",
+lunch:
+"Pasta (macarrones/espaguetis) con salsa de tomate frito + 200 g de carne picada de pollo o pavo mezclada.",
+snack:
+"1 vaso grande de leche entera o semidesnatada con copos de avena o cereales integrales.",
+dinner:
+"Sopa de estrellas o fideos finos con caldo limpio de pollo + 1 taza grande de queso fresco batido 0% o requesón.",
+training:["weights"]
+},
+
+5:{
+name:"Viernes",
+breakfast:
+"1 yogur griego natural grande con 60 g de cereales de maíz (sin azúcar) + 1 manzana + 1 puñado de frutos secos.",
+lunch:
+"Judías verdes hervidas con patatas y un chorrito de aceite + 2 filetes de pescado blanco (merluza, bacalao o lenguado).",
+snack:
+"1 yogur griego natural + 1 pieza de fruta (pera, mandarina o plátano) + 1 puñado de crackers integrales.",
+dinner:
+"Tu Pizza Semanal: 1 pizza mediana al gusto + proteínas contenidas en la propia pizza.",
+training:[]
+},
+
+6:{
+name:"Sábado",
+breakfast:
+"3 huevos revueltos + 2 tostadas de barra de pan con un chorrito de aceite de oliva + 1 pieza de fruta + 1 vaso de leche.",
+lunch:
+"Arroz a la cubana con salsa de tomate frito + 2 huevos fritos/plancha + 4 lonchas de lomo embuchado.",
+snack:
+"1 vaso grande de leche entera o semidesnatada con copos de avena o cereales integrales.",
+dinner:
+"Quinoa hervida y salteada con un poquito de ajo en sartén + 150 g de salmón o pescado azul a la plancha.",
+training:[]
+}
+
+};
+
+
+/* =========================
+   GUARDADO
+========================= */
+
+const KEY = "janTrackerDataV1";
+
+let data = loadData();
+
+let selectedDate = localDateKey();
+
+let calendarDate = new Date();
+
+
+function localDateKey(d=new Date()){
+
+    const y = d.getFullYear();
+
+    const m = String(d.getMonth()+1).padStart(2,"0");
+
+    const day = String(d.getDate()).padStart(2,"0");
+
+    return `${y}-${m}-${day}`;
+
+}
+
+
+function parseDate(k){
+
+    const [y,m,d] = k.split("-").map(Number);
+
+    return new Date(y,m-1,d);
+
+}
+
+
+function loadData(){
+
+    try{
+
+        return JSON.parse(
+            localStorage.getItem(KEY)
+        ) || {
+            days:{},
+            lastOpen:localDateKey()
+        };
+
+    }catch(e){
+
+        return {
+            days:{},
+            lastOpen:localDateKey()
+        };
+
+    }
+
+}
+
+
+function save(){
+
+    localStorage.setItem(
+        KEY,
+        JSON.stringify(data)
+    );
+
+}
+
+
+/* =========================
+   CREAR DÍA
+========================= */
+
+function blankDay(k){
+
+    const dow = parseDate(k).getDay();
+
+    return {
+
+        date:k,
+
+        breakfast:false,
+        breakfastNote:"",
+
+        lunch:false,
+        lunchNote:"",
+
+        snack:false,
+        snackNote:"",
+
+        dinner:false,
+        dinnerNote:"",
+
+        creatine:false,
+
+        box:false,
+
+        weights:false,
+
+        bed:"",
+
+        wake:"",
+
+        sleepHours:"",
+
+        notes:"",
+
+        dow:dow
+
+    };
+
+}
+
+
+function getDay(k){
+
+    if(!data.days[k]){
+
+        data.days[k] = blankDay(k);
+
+    }
+
+    return data.days[k];
+
+}
+
+
+/* =========================
+   CAMBIO DE DÍA
+========================= */
+
+function autoRollover(){
+
+    const today = localDateKey();
+
+    if(data.lastOpen !== today){
+
+        data.lastOpen = today;
+
+        if(!data.days[today]){
+
+            data.days[today] = blankDay(today);
+
+        }
+
+        save();
+
+    }
+
+    else{
+
+        if(!data.days[today]){
+
+            data.days[today] = blankDay(today);
+
+        }
+
+        save();
+
+    }
+
+}
+
+
+/* =========================
+   FECHAS
+========================= */
+
+function formatDate(k){
+
+    return parseDate(k).toLocaleDateString(
+        "es-ES",
+        {
+            weekday:"long",
+            day:"numeric",
+            month:"long",
+            year:"numeric"
+        }
+    );
+
+}
+
+
+function shortDate(k){
+
+    return parseDate(k).toLocaleDateString(
+        "es-ES",
+        {
+            day:"2-digit",
+            month:"2-digit",
+            year:"numeric"
+        }
+    );
+
+}
+
+
+function esc(s){
+
+    return String(s ?? "")
+        .replace(/[&<>"']/g,c=>({
+
+            "&":"&amp;",
+            "<":"&lt;",
+            ">":"&gt;",
+            '"':"&quot;",
+            "'":"&#39;"
+
+        }[c]));
+
+}
+
+
+/* =========================
+   CONTADOR DE PALABRAS
+========================= */
+
+function countWords(text){
+
+    return text
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .length;
+
+}
+
+
+function limitWords(text,max=100){
+
+    const words =
+        text.trim()
+        .split(/\s+/)
+        .filter(Boolean);
+
+    return words.length <= max
+        ? text
+        : words.slice(0,max).join(" ");
+
+}
+
+
+/* =========================
+   PANTALLA PRINCIPAL
+========================= */
+
+function renderToday(){
+
+    const d = getDay(selectedDate);
+
+    const p = PLAN[d.dow];
+
+    document.getElementById("datePill").textContent =
+        shortDate(selectedDate);
+
+
+    function meal(
+        key,
+        title,
+        time,
+        plan
+    ){
+
+        const note =
+            d[key+"Note"] || "";
+
+        return `
+
+        <div class="card">
+
+            <div class="meal-head">
+
+                <div class="meal-name">
+                    ${title}
+                </div>
+
+                <div class="time">
+                    ${time}
+                </div>
+
+            </div>
+
+
+            <div class="plan">
+                ${esc(plan)}
+            </div>
+
+
+            <div class="checkrow">
+
+                <label class="check">
+
+                    <input
+                        type="checkbox"
+                        ${d[key] ? "checked" : ""}
+                        onchange="setField('${key}',this.checked)"
+                    >
+
+                    He seguido esta comida
+
+                </label>
+
+            </div>
+
+
+            <div class="comment-wrapper">
+
+                <textarea
+                    id="comment-${key}"
+                    class="small-input"
+                    rows="2"
+                    maxlength="1000"
+                    placeholder="Comentario opcional..."
+                    oninput="updateMealComment('${key}',this)"
+                >${esc(note)}</textarea>
+
+                <div
+                    id="counter-${key}"
+                    class="comment-counter"
+                >
+                    ${countWords(note)}/100 palabras
+                </div>
+
+            </div>
+
+        </div>
+
+        `;
+
+    }
+
+
+    document.getElementById("today").innerHTML = `
+
+    <div class="section">
+
+        <div class="section-title">
+
+            ${p.name}, ${shortDate(selectedDate)}
+
+        </div>
+
+
+        <div class="notice">
+
+            Las comidas son una guía.
+            Puedes marcar si has seguido la comida
+            y añadir un comentario de hasta 100 palabras.
+
+        </div>
+
+    </div>
+
+
+    <div class="section">
+
+        <div class="section-title">
+            Comidas
+        </div>
+
+
+        ${meal(
+            "breakfast",
+            "Desayuno",
+            "07:30",
+            p.breakfast
+        )}
+
+
+        ${meal(
+            "lunch",
+            "Comida",
+            "13:30",
+            p.lunch
+        )}
+
+
+        ${meal(
+            "snack",
+            "Merienda / Snack",
+            "19:45",
+            p.snack
+        )}
+
+
+        ${meal(
+            "dinner",
+            "Cena",
+            "21:00",
+            p.dinner
+        )}
+
+    </div>
+
+
+    <div class="section">
+
+        <div class="section-title">
+            Entrenamiento
+        </div>
+
+
+        <div class="training">
+
+            <div class="train">
+
+                <label>
+
+                    <input
+                        type="checkbox"
+                        ${d.box ? "checked" : ""}
+                        onchange="setField('box',this.checked)"
+                    >
+
+                    Boxeo realizado
+
+                </label>
+
+            </div>
+
+
+            <div class="train">
+
+                <label>
+
+                    <input
+                        type="checkbox"
+                        ${d.weights ? "checked" : ""}
+                        onchange="setField('weights',this.checked)"
+                    >
+
+                    Pesas realizadas
+
+                </label>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="section">
+
+        <div class="section-title">
+            Creatina
+        </div>
+
+
+        <div class="card">
+
+            <div class="plan">
+
+                5 g de creatina monohidratada
+                antes de la comida de las 13:30.
+
+            </div>
+
+
+            <label class="check">
+
+                <input
+                    type="checkbox"
+                    ${d.creatine ? "checked" : ""}
+                    onchange="setField('creatine',this.checked)"
+                >
+
+                He tomado los 5 g
+
+            </label>
+
+        </div>
+
+    </div>
+
+
+    <div class="section">
+
+        <div class="section-title">
+            Sueño
+        </div>
+
+
+        <div class="card sleep-card">
+
+            <div class="sleep-grid">
+
+                <div class="field">
+
+                    <label>
+                        Hora de acostarme
+                    </label>
+
+                    <input
+                        type="time"
+                        value="${esc(d.bed)}"
+                        onchange="
+                            setField('bed',this.value);
+                            calcSleep();
+                        "
+                    >
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        Hora de levantarme
+                    </label>
+
+                    <input
+                        type="time"
+                        value="${esc(d.wake)}"
+                        onchange="
+                            setField('wake',this.value);
+                            calcSleep();
+                        "
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div class="sleep-result">
+
+                Horas dormidas:
+
+                <strong id="sleepValue">
+                    ${d.sleepHours || "—"}
+                </strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="section">
+
+        <div class="section-title">
+            Notas del día
+        </div>
+
+
+        <textarea
+            class="small-input"
+            rows="4"
+            placeholder="Cualquier cosa que quieras recordar..."
+            oninput="setField('notes',this.value)"
+        >${esc(d.notes)}</textarea>
+
+    </div>
+
+
+    <div class="save-section">
+
+        <button
+            class="save-day"
+            onclick="saveDay()"
+        >
+            ✓ Guardar día
+        </button>
+
+        <div
+            id="saveMessage"
+            class="save-message"
+        ></div>
+
+    </div>
+
+    `;
+
+
+    calcSleep();
+
+}
+
+
+/* =========================
+   COMENTARIOS
+========================= */
+
+function updateMealComment(key,textarea){
+
+    const original = textarea.value;
+
+    const limited =
+        limitWords(original,100);
+
+    if(limited !== original){
+
+        textarea.value = limited;
+
+    }
+
+    setField(
+        key+"Note",
+        textarea.value
+    );
+
+    const counter =
+        document.getElementById(
+            "counter-"+key
+        );
+
+    if(counter){
+
+        const words =
+            countWords(textarea.value);
+
+        counter.textContent =
+            `${words}/100 palabras`;
+
+        counter.classList.toggle(
+            "limit",
+            words >= 100
+        );
+
+    }
+
+}
+
+
+/* =========================
+   GUARDAR DÍA
+========================= */
+
+function saveDay(){
+
+    const d = getDay(selectedDate);
+
+    d.date = selectedDate;
+    d.dow = parseDate(selectedDate).getDay();
+
+    save();
+
+    renderHistory();
+    renderStats();
+
+    const msg =
+        document.getElementById(
+            "saveMessage"
+        );
+
+    if(msg){
+
+        msg.textContent =
+            "✓ Día guardado correctamente";
+
+        setTimeout(()=>{
+
+            msg.textContent = "";
+
+        },2500);
+
+    }
+
+}
+
+
+/* =========================
+   GUARDAR CAMPO
+========================= */
+
+function setField(k,v){
+
+    const d = getDay(selectedDate);
+
+    d[k] = v;
+
+    save();
+
+}
+
+
+/* =========================
+   CALCULAR SUEÑO
+========================= */
+
+function calcSleep(){
+
+    const d = getDay(selectedDate);
+
+    if(!d.bed || !d.wake){
+
+        const el =
+            document.getElementById("sleepValue");
+
+        if(el){
+
+            el.textContent = "—";
+
+        }
+
+        return;
+
+    }
+
+
+    let [bh,bm] =
+        d.bed.split(":").map(Number);
+
+    let [wh,wm] =
+        d.wake.split(":").map(Number);
+
+
+    let mins =
+        (wh*60+wm) -
+        (bh*60+bm);
+
+
+    if(mins < 0){
+
+        mins += 1440;
+
+    }
+
+
+    d.sleepHours =
+        (mins/60).toFixed(1) + " h";
+
+
+    save();
+
+
+    const el =
+        document.getElementById("sleepValue");
+
+    if(el){
+
+        el.textContent =
+            d.sleepHours;
+
+    }
+
+}
+
+
+/* =========================
+   PORCENTAJE
+========================= */
+
+function completion(d){
+
+    const keys = [
+
+        "breakfast",
+        "lunch",
+        "snack",
+        "dinner",
+        "creatine"
+
+    ];
+
+
+    const trainingDay =
+        d.dow===1 ||
+        d.dow===3;
+
+
+    const total =
+        keys.length +
+        (trainingDay ? 2 : 0);
+
+
+    let done =
+        keys.filter(k=>d[k]).length;
+
+
+    if(trainingDay){
+
+        if(d.box) done++;
+
+        if(d.weights) done++;
+
+    }
+
+
+    return Math.round(
+        done / total * 100
+    );
+
+}
+
+
+/* =========================
+   CALENDARIO
+========================= */
+
+function changeCalendarMonth(amount){
+
+    calendarDate.setMonth(
+        calendarDate.getMonth()+amount
+    );
+
+    renderHistory();
+
+}
+
+
+function calendarDayClass(k){
+
+    const d = data.days[k];
+
+    if(!d){
+
+        return "calendar-day";
+
+    }
+
+    const percent =
+        completion(d);
+
+    if(percent >= 80){
+
+        return "calendar-day complete";
+
+    }
+
+    return "calendar-day partial";
+
+}
+
+
+function openCalendarDay(k){
+
+    if(!data.days[k]){
+
+        data.days[k] = blankDay(k);
+
+        save();
+
+    }
+
+    selectedDate = k;
+
+    switchTab("today");
+
+    renderToday();
+
+}
+
+
+function renderHistory(){
+
+    const year =
+        calendarDate.getFullYear();
+
+    const month =
+        calendarDate.getMonth();
+
+
+    const first =
+        new Date(year,month,1);
+
+    const last =
+        new Date(year,month+1,0);
+
+
+    const daysInMonth =
+        last.getDate();
+
+
+    /*
+       JS: domingo = 0.
+       Convertimos para que lunes sea 0.
+    */
+
+    let startDay =
+        first.getDay() - 1;
+
+    if(startDay < 0){
+
+        startDay = 6;
+
+    }
+
+
+    const monthName =
+        first.toLocaleDateString(
+            "es-ES",
+            {
+                month:"long",
+                year:"numeric"
+            }
+        );
+
+
+    let cells = "";
+
+
+    for(let i=0;i<startDay;i++){
+
+        cells += `
+            <div class="calendar-day empty"></div>
+        `;
+
+    }
+
+
+    for(let day=1;day<=daysInMonth;day++){
+
+        const k =
+            `${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+
+
+        const todayClass =
+            k===localDateKey()
+            ? " today"
+            : "";
+
+
+        const selectedClass =
+            k===selectedDate
+            ? " selected"
+            : "";
+
+
+        cells += `
+
+            <button
+                class="${calendarDayClass(k)}${todayClass}${selectedClass}"
+                onclick="openCalendarDay('${k}')"
+                title="${formatDate(k)}"
+            >
+                ${day}
+            </button>
+
+        `;
+
+    }
+
+
+    document.getElementById("history").innerHTML = `
+
+    <div class="section">
+
+        <div class="section-title">
+            Historial
+        </div>
+
+
+        <div class="notice">
+
+            El calendario muestra tus días registrados.
+            Los días con más progreso aparecen en verde
+            y los días parcialmente registrados en azul.
+
+        </div>
+
+    </div>
+
+
+    <div class="section">
+
+        <div class="card">
+
+            <div class="calendar-header">
+
+                <div class="calendar-title">
+                    ${esc(monthName)}
+                </div>
+
+
+                <div class="calendar-nav">
+
+                    <button
+                        onclick="changeCalendarMonth(-1)"
+                        aria-label="Mes anterior"
+                    >
+                        ‹
+                    </button>
+
+                    <button
+                        onclick="changeCalendarMonth(1)"
+                        aria-label="Mes siguiente"
+                    >
+                        ›
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div class="calendar-weekdays">
+
+                <div>L</div>
+                <div>M</div>
+                <div>X</div>
+                <div>J</div>
+                <div>V</div>
+                <div>S</div>
+                <div>D</div>
+
+            </div>
+
+
+            <div class="calendar-grid">
+
+                ${cells}
+
+            </div>
+
+
+            <div class="calendar-legend">
+
+                <div class="legend-item">
+
+                    <span class="legend-dot empty"></span>
+
+                    Sin registrar
+
+                </div>
+
+
+                <div class="legend-item">
+
+                    <span class="legend-dot partial"></span>
+
+                    Registrado
+
+                </div>
+
+
+                <div class="legend-item">
+
+                    <span class="legend-dot complete"></span>
+
+                    Día completo
+
+                </div>
+
+            </div>
+
+
+            <div class="history-selected">
+
+                Pulsa cualquier día para abrirlo y editarlo.
+
+            </div>
+
+        </div>
+
+    </div>
+
+    `;
+
+}
+
+
+/* =========================
+   EDITAR DÍA
+========================= */
+
+function editDay(k){
+
+    selectedDate = k;
+
+    switchTab("today");
+
+    renderToday();
+
+}
+
+
+/* =========================
+   ESTADÍSTICAS
+========================= */
+
+function renderStats(){
+
+    const keys =
+        Object.keys(data.days)
+        .sort();
+
+
+    const days =
+        keys.map(k=>data.days[k]);
+
+
+    const avg =
+        days.length
+        ?
+        Math.round(
+            days.reduce(
+                (s,d)=>s+completion(d),
+                0
+            ) / days.length
+        )
+        :
+        0;
+
+
+    const meals =
+        days.length
+        ?
+        Math.round(
+            days.reduce(
+                (s,d)=>
+                    s +
+                    [
+                        "breakfast",
+                        "lunch",
+                        "snack",
+                        "dinner"
+                    ]
+                    .filter(x=>d[x]).length,
+                0
+            )
+            /
+            (days.length*4)
+            *
+            100
+        )
+        :
+        0;
+
+
+    const train =
+        days.filter(
+            d=>d.box || d.weights
+        ).length;
+
+
+    const creat =
+        days.length
+        ?
+        Math.round(
+            days.filter(
+                d=>d.creatine
+            ).length
+            /
+            days.length
+            *
+            100
+        )
+        :
+        0;
+
+
+    document.getElementById("stats").innerHTML = `
+
+    <div class="section">
+
+        <div class="section-title">
+            Estadísticas
+        </div>
+
+
+        <div class="stats-grid">
+
+            <div class="stat">
+
+                <b>${days.length}</b>
+
+                <span>
+                    días registrados
+                </span>
+
+            </div>
+
+
+            <div class="stat">
+
+                <b>${avg}%</b>
+
+                <span>
+                    cumplimiento medio
+                </span>
+
+            </div>
+
+
+            <div class="stat">
+
+                <b>${meals}%</b>
+
+                <span>
+                    comidas registradas
+                </span>
+
+            </div>
+
+
+            <div class="stat">
+
+                <b>${train}</b>
+
+                <span>
+                    días con entrenamiento
+                </span>
+
+            </div>
+
+
+            <div class="stat">
+
+                <b>${creat}%</b>
+
+                <span>
+                    días con creatina
+                </span>
+
+            </div>
+
+
+            <div class="stat">
+
+                <b>
+                    ${
+                        days.filter(
+                            d=>d.sleepHours
+                        ).length
+                    }
+                </b>
+
+                <span>
+                    días con sueño registrado
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="section">
+
+        <div class="section-title">
+            Días registrados
+        </div>
+
+
+        <div class="card">
+
+            ${
+                days
+                .slice()
+                .reverse()
+                .slice(0,14)
+                .map(d=>`
+
+                    <div style="
+                        margin:12px 0;
+                    ">
+
+                        <div style="
+                            display:flex;
+                            justify-content:space-between;
+                            font-size:13px;
+                        ">
+
+                            <span>
+                                ${esc(shortDate(d.date))}
+                            </span>
+
+
+                            <span>
+                                ${completion(d)}%
+                            </span>
+
+                        </div>
+
+
+                        <div class="progress">
+
+                            <i
+                                style="
+                                    width:${completion(d)}%;
+                                "
+                            ></i>
+
+                        </div>
+
+                    </div>
+
+                `)
+                .join("")
+
+                ||
+
+                `
+
+                <div class="empty">
+                    Sin datos todavía.
+                </div>
+
+                `
+
+            }
+
+        </div>
+
+    </div>
+
+
+    <div class="section">
+
+        <button
+            class="btn danger"
+            onclick="clearAll()"
+        >
+            Borrar todos los registros
+        </button>
+
+    </div>
+
+    `;
+
+}
+
+
+/* =========================
+   BORRAR DATOS
+========================= */
+
+function clearAll(){
+
+    if(
+        confirm(
+            "¿Seguro que quieres borrar todos los registros?"
+        )
+    ){
+
+        data = {
+
+            days:{},
+
+            lastOpen:localDateKey()
+
+        };
+
+
+        save();
+
+
+        selectedDate =
+            localDateKey();
+
+
+        calendarDate =
+            new Date();
+
+
+        renderAll();
+
+    }
+
+}
+
+
+/* =========================
+   CAMBIAR PESTAÑA
+========================= */
+
+function switchTab(tab){
+
+    document
+        .querySelectorAll(".tabs button")
+        .forEach(b=>{
+
+            b.classList.toggle(
+                "active",
+                b.dataset.tab===tab
+            );
+
+        });
+
+
+    document
+        .querySelectorAll(".view")
+        .forEach(v=>{
+
+            v.classList.toggle(
+                "active",
+                v.id===tab
+            );
+
+        });
+
+}
+
+
+/* =========================
+   NAVEGACIÓN
+========================= */
+
+document
+    .querySelectorAll(".tabs button")
+    .forEach(b=>{
+
+        b.onclick=()=>{
+
+            switchTab(
+                b.dataset.tab
+            );
+
+            renderAll();
+
+        };
+
+    });
+
+
+/* =========================
+   RENDERIZAR TODO
+========================= */
+
+function renderAll(){
+
+    renderToday();
+
+    renderHistory();
+
+    renderStats();
+
+}
+
+
+/* =========================
+   INICIAR
+========================= */
+
+autoRollover();
+
+renderAll();
+
+
+/* =========================
+   COMPROBAR CAMBIO DE DÍA
+========================= */
+
+setInterval(()=>{
+
+    const now =
+        localDateKey();
+
+
+    if(data.lastOpen !== now){
+
+        data.lastOpen = now;
+
+
+        if(!data.days[now]){
+
+            data.days[now] =
+                blankDay(now);
+
+        }
+
+
+        save();
+
+
+        selectedDate = now;
+
+        calendarDate =
+            new Date();
+
+
+        renderAll();
+
+    }
+
+},15000);
+
+
+/* =========================
+   VOLVER A LA APP
+========================= */
+
+document.addEventListener(
+    "visibilitychange",
+    ()=>{
+
+        if(!document.hidden){
+
+            autoRollover();
+
+            if(
+                selectedDate ===
+                localDateKey()
+            ){
+
+                renderToday();
+
+            }
+
+            renderHistory();
+
+            renderStats();
+
+        }
+
+    }
+);
+
+</script>
+
+</body>
+</html>
+```
